@@ -5,10 +5,40 @@ const AppContext = createContext()
 
 export function AppProvider({ children }) {
   const [documents, setDocuments] = useState(MOCK_DOCUMENTS)
-  const [currentUser, setCurrentUser] = useState({
-    name: "Nguyễn Văn A",
-    role: "student", // 'student' or 'admin'
-  })
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+
+  const login = (role = "student") => {
+    setIsLoggedIn(true)
+    if (role === "admin") {
+      setCurrentUser({
+        name: "Lê Thị B",
+        email: "admin.lethib@hutech.edu.vn",
+        school: "HUTECH",
+        department: "CNTT",
+        role: "admin",
+      })
+    } else {
+      setCurrentUser({
+        name: "Nguyễn Văn A",
+        email: "nguyenvana@hutech.edu.vn",
+        school: "HUTECH",
+        department: "CNTT",
+        role: "student",
+      })
+    }
+  }
+
+  const logout = () => {
+    setIsLoggedIn(false)
+    setCurrentUser(null)
+  }
+
+  const updateUserProfile = (updatedData) => {
+    setCurrentUser(prev => ({ ...prev, ...updatedData }))
+    // Trong thực tế, lúc này cũng có thể update các documents của uploader đó nếu đổi tên.
+    // (Ở ví dụ này giữ nguyên để đơn giản, hoặc có thể map update tuỳ ý)
+  }
 
   const addDocument = (doc) => {
     setDocuments(prev => [{ ...doc, id: `doc-00${prev.length + 1}` }, ...prev])
@@ -22,22 +52,17 @@ export function AppProvider({ children }) {
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
 
-  const toggleRole = () => {
-    setCurrentUser(prev => 
-      prev.role === "student" 
-        ? { name: "Lê Thị B (Admin)", role: "admin" } 
-        : { name: "Nguyễn Văn A", role: "student" }
-    )
-  }
-
   return (
     <AppContext.Provider value={{
       documents,
+      isLoggedIn,
       currentUser,
+      login,
+      logout,
+      updateUserProfile,
       addDocument,
       updateDocumentStatus,
-      deleteDocument,
-      toggleRole
+      deleteDocument
     }}>
       {children}
     </AppContext.Provider>
