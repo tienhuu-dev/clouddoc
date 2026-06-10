@@ -82,20 +82,22 @@ export default function UploadPage() {
     if (isUploading && progress >= 100) {
       // Simulate final delay
       const timer = setTimeout(() => {
-        // Thêm document vào Context (status pending)
-        const ext = file.name.split('.').pop()
-        const newDoc = {
-          title: title,
-          school: school,
-          department: dept,
-          subject: subject,
-          fileType: ext,
-          fileSize: (file.size / (1024 * 1024)).toFixed(1) + "MB",
-          uploader: currentUser?.name || "Ẩn danh",
-          status: "pending",
-          downloadCount: 0,
-          s3Url: "#", // Mock
-          contentIndex: title.toLowerCase(),
+          // Thêm document vào Context (status pending)
+          const ext = file.name.split('.').pop()
+          const objectUrl = URL.createObjectURL(file)
+          
+          const newDoc = {
+            title: title,
+            school: school,
+            department: dept,
+            subject: subject,
+            fileType: ext,
+            fileSize: (file.size / (1024 * 1024)).toFixed(1) + "MB",
+            uploader: currentUser?.name || "Ẩn danh",
+            status: "pending",
+            downloadCount: 0,
+            s3Url: objectUrl, // Dùng Blob URL để preview và tải xuống thật trong session này
+            contentIndex: title.toLowerCase(),
           uploadDate: new Date().toISOString().split('T')[0],
           uploadTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
         }

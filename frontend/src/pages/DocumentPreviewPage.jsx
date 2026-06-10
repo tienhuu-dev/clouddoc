@@ -65,7 +65,7 @@ export default function DocumentPreviewPage() {
             </div>
           </div>
           <div className="flex-1 w-full h-full bg-slate-100 flex items-center justify-center relative">
-            {document.s3Url !== "#" ? (
+            {document.s3Url !== "#" && document.fileType?.toLowerCase() === "pdf" ? (
               <iframe 
                 src={document.s3Url} 
                 className="w-full h-full border-0" 
@@ -74,7 +74,7 @@ export default function DocumentPreviewPage() {
             ) : (
               <div className="text-center text-slate-500">
                 <FileText className="h-20 w-20 mx-auto mb-4 text-slate-300" />
-                <p>Bản xem trước không khả dụng cho định dạng này.</p>
+                <p>Bản xem trước không khả dụng cho định dạng {document.fileType?.toUpperCase()}.</p>
                 <p className="text-sm mt-2">Vui lòng tải về máy để xem.</p>
               </div>
             )}
@@ -127,11 +127,27 @@ export default function DocumentPreviewPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <Button size="lg" className="w-full text-lg h-14 shadow-md bg-indigo-600 hover:bg-indigo-700 gap-2">
+              <Button 
+                size="lg" 
+                className="w-full text-lg h-14 shadow-md bg-indigo-600 hover:bg-indigo-700 gap-2"
+                onClick={() => {
+                  if (document.s3Url && document.s3Url !== "#") {
+                    const a = window.document.createElement('a')
+                    a.href = document.s3Url
+                    a.download = `${document.title}.${document.fileType}`
+                    a.click()
+                  } else {
+                    alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
+                  }
+                }}
+              >
                 <Download className="h-5 w-5" />
                 Tải Xuống Ngay
               </Button>
-              <Button variant="outline" className="w-full h-12 text-slate-600 gap-2">
+              <Button variant="outline" className="w-full h-12 text-slate-600 gap-2" onClick={() => {
+                navigator.clipboard.writeText(window.location.href)
+                alert("Đã copy link chia sẻ!")
+              }}>
                 <Share2 className="h-4 w-4" />
                 Chia sẻ Link
               </Button>
