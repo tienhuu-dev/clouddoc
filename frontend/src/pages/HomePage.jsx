@@ -176,7 +176,23 @@ export default function HomePage() {
                     <Eye className="w-3.5 h-3.5 mr-1.5" /> Xem
                   </Button>
                 </Link>
-                <Button variant="default" size="sm" className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 shadow-sm">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 shadow-sm"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (doc.s3Url && doc.s3Url !== "#") {
+                      const a = window.document.createElement('a')
+                      a.href = doc.s3Url
+                      a.download = `${doc.title}.${doc.fileType}`
+                      a.click()
+                    } else {
+                      alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
+                    }
+                  }}
+                >
                   <Download className="w-3.5 h-3.5 mr-1.5" /> Tải
                 </Button>
               </CardFooter>

@@ -10,7 +10,7 @@ export const MOCK_DOCUMENTS = [
     uploader: "Nguyễn Văn A (Sinh viên)",
     status: "approved",
     downloadCount: 125,
-    s3Url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", 
+    s3Url: "/dummy.pdf", 
     contentIndex: "mô hình dữ liệu quan hệ e.f. codd hệ quản trị cơ sở dữ liệu toán rời rạc",
     uploadDate: "2023-09-15"
   },

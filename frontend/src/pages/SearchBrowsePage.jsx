@@ -199,16 +199,32 @@ export default function SearchBrowsePage() {
                       <span>👤 {doc.uploader}</span>
                       <span>⬇️ {doc.downloadCount}</span>
                     </div>
-                    <div className="flex w-full gap-2">
-                      <Link to={`/preview/${doc.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full text-primary border-primary/20 hover:bg-primary/5">
-                          <Eye className="w-4 h-4 mr-2" /> Xem
+                      <div className="pt-0 flex gap-2 w-full">
+                        <Link to={`/preview/${doc.id}`} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full text-slate-600 bg-slate-50 hover:bg-slate-100 h-9">
+                            <Eye className="w-3.5 h-3.5 mr-1.5" /> Xem
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 shadow-sm"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            if (doc.s3Url && doc.s3Url !== "#") {
+                              const a = window.document.createElement('a')
+                              a.href = doc.s3Url
+                              a.download = `${doc.title}.${doc.fileType}`
+                              a.click()
+                            } else {
+                              alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
+                            }
+                          }}
+                        >
+                          <Download className="w-3.5 h-3.5 mr-1.5" /> Tải
                         </Button>
-                      </Link>
-                      <Button variant="default" className="px-3" title="Tải xuống nhanh">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </div>
+                      </div>
                   </CardFooter>
                 </Card>
               ))}
