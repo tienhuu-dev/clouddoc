@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { Download, Share2, Info, FileText, ChevronLeft, Calendar, User } from "lucide-react"
-import { MOCK_DOCUMENTS } from "@/services/mockData"
+import { Download, Share2, Info, FileText, ChevronLeft, Calendar, User, Clock } from "lucide-react"
+import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 export default function DocumentPreviewPage() {
   const { id } = useParams()
+  const { documents } = useAppContext()
+  
   const [document, setDocument] = useState(null)
   const [relatedDocs, setRelatedDocs] = useState([])
 
   useEffect(() => {
-    // Mock API Fetch
-    const doc = MOCK_DOCUMENTS.find(d => d.id === id)
+    const doc = documents.find(d => d.id === id)
     setDocument(doc)
 
     if (doc) {
-      const related = MOCK_DOCUMENTS.filter(
-        d => d.subject === doc.subject && d.id !== doc.id
+      const related = documents.filter(
+        d => d.subject === doc.subject && d.id !== doc.id && d.status === "approved"
       ).slice(0, 3)
       setRelatedDocs(related)
     }
-  }, [id])
+  }, [id, documents])
 
   if (!document) {
     return (
@@ -92,6 +92,18 @@ export default function DocumentPreviewPage() {
             </div>
 
             <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+                <span className="text-sm text-slate-500">Trạng thái</span>
+                {document.status === 'pending' ? (
+                  <span className="inline-flex items-center text-yellow-600 bg-yellow-50 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                    <Clock className="w-3 h-3 mr-1" /> Chờ duyệt
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center text-green-600 bg-green-50 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                    Đã duyệt
+                  </span>
+                )}
+              </div>
               <div className="flex justify-between items-center pb-3 border-b border-slate-100">
                 <span className="text-sm text-slate-500">Dung lượng</span>
                 <span className="font-semibold text-slate-700">{document.fileSize}</span>

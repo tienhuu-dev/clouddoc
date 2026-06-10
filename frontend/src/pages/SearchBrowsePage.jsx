@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react"
 import { useSearchParams, Link } from "react-router-dom"
 import { FileText, Download, Eye, Search as SearchIcon } from "lucide-react"
-import { MOCK_DOCUMENTS, SCHOOL_DATA } from "@/services/mockData"
+import { SCHOOL_DATA } from "@/services/mockData"
+import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,6 +14,8 @@ export default function SearchBrowsePage() {
   const schoolParam = searchParams.get("school") || ""
   const deptParam = searchParams.get("dept") || ""
   const subjectParam = searchParams.get("subject") || ""
+
+  const { documents } = useAppContext()
 
   const [isLoading, setIsLoading] = useState(true)
   const [results, setResults] = useState([])
@@ -31,7 +34,8 @@ export default function SearchBrowsePage() {
     // Simulate API delay with OpenSearch
     setIsLoading(true)
     const timer = setTimeout(() => {
-      let filtered = MOCK_DOCUMENTS
+      // Chỉ tìm trong các tài liệu đã được duyệt
+      let filtered = documents.filter(d => d.status === "approved")
 
       if (query) {
         const q = query.toLowerCase()
@@ -49,7 +53,7 @@ export default function SearchBrowsePage() {
     }, 800) // 800ms skeleton loading
 
     return () => clearTimeout(timer)
-  }, [query, schoolParam, deptParam, subjectParam])
+  }, [query, schoolParam, deptParam, subjectParam, documents])
 
   const handleApplyFilters = () => {
     const params = new URLSearchParams()

@@ -7,7 +7,8 @@ export const MOCK_DOCUMENTS = [
     subject: "Cơ sở dữ liệu",
     fileType: "pdf",
     fileSize: "4.5MB",
-    uploader: "Nguyễn Văn A",
+    uploader: "Nguyễn Văn A (Sinh viên)",
+    status: "approved",
     downloadCount: 125,
     s3Url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", 
     contentIndex: "mô hình dữ liệu quan hệ e.f. codd hệ quản trị cơ sở dữ liệu toán rời rạc",
@@ -21,7 +22,8 @@ export const MOCK_DOCUMENTS = [
     subject: "Toán rời rạc",
     fileType: "docx",
     fileSize: "1.2MB",
-    uploader: "Trần Thị B",
+    uploader: "Trần Thị B (Sinh viên)",
+    status: "approved",
     downloadCount: 89,
     s3Url: "#",
     contentIndex: "đề thi đáp án logic mệnh đề tập hợp đồ thị đại số boolean",
@@ -35,7 +37,8 @@ export const MOCK_DOCUMENTS = [
     subject: "Cấu trúc dữ liệu",
     fileType: "zip",
     fileSize: "15MB",
-    uploader: "Lê Văn C",
+    uploader: "Lê Văn C (Sinh viên)",
+    status: "approved",
     downloadCount: 300,
     s3Url: "#",
     contentIndex: "danh sách liên kết cây nhị phân sắp xếp đồ thị thuật toán",
@@ -43,17 +46,18 @@ export const MOCK_DOCUMENTS = [
   },
   {
     id: "doc-004",
-    title: "Hướng dẫn thực hành Nhập môn lập trình (C/C++)",
+    title: "Đề cương ôn tập Hệ Điều Hành cuối kỳ",
     school: "HUTECH",
     department: "CNTT",
-    subject: "Nhập môn lập trình",
-    fileType: "pdf",
-    fileSize: "8.1MB",
-    uploader: "Phạm Văn D",
-    downloadCount: 450,
-    s3Url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    contentIndex: "con trỏ vòng lặp mảng hàm biến if else",
-    uploadDate: "2024-01-10"
+    subject: "Hệ điều hành",
+    fileType: "docx",
+    fileSize: "2.1MB",
+    uploader: "Lê Văn C (Sinh viên)",
+    status: "pending",
+    downloadCount: 0,
+    s3Url: "#",
+    contentIndex: "tiến trình luồng bộ nhớ ảo deadlock",
+    uploadDate: "2024-02-28"
   },
   {
     id: "doc-005",
@@ -63,7 +67,8 @@ export const MOCK_DOCUMENTS = [
     subject: "Kinh tế vĩ mô",
     fileType: "pdf",
     fileSize: "5.5MB",
-    uploader: "Hoàng Thị E",
+    uploader: "Hoàng Thị E (Sinh viên)",
+    status: "approved",
     downloadCount: 60,
     s3Url: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
     contentIndex: "lạm phát gdp thất nghiệp chính sách tiền tệ tài khóa",
@@ -73,7 +78,7 @@ export const MOCK_DOCUMENTS = [
 
 export const SCHOOL_DATA = {
   "HUTECH": {
-    "CNTT": ["Cơ sở dữ liệu", "Toán rời rạc", "Cấu trúc dữ liệu", "Nhập môn lập trình"],
+    "CNTT": ["Cơ sở dữ liệu", "Toán rời rạc", "Cấu trúc dữ liệu", "Nhập môn lập trình", "Hệ điều hành"],
     "Kinh Tế": ["Quản trị học", "Marketing căn bản"]
   },
   "FTU": {

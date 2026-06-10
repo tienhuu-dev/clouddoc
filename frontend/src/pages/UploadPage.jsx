@@ -1,11 +1,13 @@
 import { useState, useRef } from "react"
 import { UploadCloud, File, X, CheckCircle2, AlertCircle } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
+import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 
 export default function UploadPage() {
+  const { addDocument, currentUser } = useAppContext()
   const [file, setFile] = useState(null)
   const [error, setError] = useState("")
   const [isUploading, setIsUploading] = useState(false)
@@ -37,7 +39,6 @@ export default function UploadPage() {
     setError("")
     setFile(selectedFile)
     if (!title) {
-      // Auto fill title without extension
       setTitle(selectedFile.name.replace(/\.[^/.]+$/, ""))
     }
   }
@@ -45,7 +46,6 @@ export default function UploadPage() {
   const handleDrop = (e) => {
     e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      // Create a fake event object to reuse logic
       handleFileChange({ target: { files: [e.dataTransfer.files[0]] } })
     }
   }
@@ -65,13 +65,33 @@ export default function UploadPage() {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval)
+          
+          // Thêm document vào Context (status pending)
+          const ext = file.name.split('.').pop()
+          const newDoc = {
+            title: title,
+            school: school,
+            department: dept,
+            subject: subject,
+            fileType: ext,
+            fileSize: (file.size / (1024 * 1024)).toFixed(1) + "MB",
+            uploader: currentUser.name,
+            status: "pending",
+            downloadCount: 0,
+            s3Url: "#", // Mock
+            contentIndex: title.toLowerCase(),
+            uploadDate: new Date().toISOString().split('T')[0]
+          }
+          
+          addDocument(newDoc)
           setIsUploading(false)
           setIsSuccess(true)
+          
           return 100
         }
-        return prev + Math.floor(Math.random() * 15) + 5 // random step
+        return prev + Math.floor(Math.random() * 15) + 5
       })
-    }, 400) // 400ms per tick ~ 3 seconds total
+    }, 400)
   }
 
   const resetForm = () => {
@@ -99,12 +119,15 @@ export default function UploadPage() {
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 md:p-10">
         
         {isSuccess ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-in fade-in zoom-in duration-300">
             <CheckCircle2 className="h-20 w-20 text-green-500 mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Upload Thành Công!</h2>
-            <p className="text-slate-500 mb-8">
+            <p className="text-slate-500 mb-4">
               Tài liệu <span className="font-semibold text-slate-700">"{title}"</span> đã được tải lên máy chủ AWS S3 an toàn.
             </p>
+            <div className="bg-yellow-50 text-yellow-800 border border-yellow-200 p-3 rounded-lg text-sm max-w-md mx-auto mb-8">
+              Tài liệu của bạn đang ở trạng thái <strong>Chờ duyệt</strong>. Xin vui lòng chờ Admin phê duyệt trước khi tài liệu xuất hiện trên Trang chủ!
+            </div>
             <Button size="lg" onClick={resetForm} className="px-8">
               Tiếp tục đóng góp tài liệu khác
             </Button>

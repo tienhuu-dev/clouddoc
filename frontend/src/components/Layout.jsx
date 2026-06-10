@@ -1,8 +1,11 @@
 import { Link, Outlet } from "react-router-dom"
-import { Cloud, Upload } from "lucide-react"
+import { Cloud, Upload, UserCircle, Settings } from "lucide-react"
 import { Button } from "./ui/button"
+import { useAppContext } from "@/context/AppContext"
 
 export default function Layout() {
+  const { currentUser, toggleRole } = useAppContext()
+
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       {/* Navbar */}
@@ -19,12 +22,33 @@ export default function Layout() {
             <Link to="/" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">
               Trang chủ
             </Link>
+            
+            {/* Mock Login Switcher */}
+            <div className="flex items-center gap-3 border-l pl-6 ml-2 border-slate-200">
+              <div className="text-right">
+                <p className="text-sm font-bold text-slate-700">{currentUser.name}</p>
+                <button onClick={toggleRole} className="text-[10px] text-blue-500 hover:underline">
+                  [Đổi quyền: {currentUser.role === 'admin' ? 'Admin' : 'Student'}]
+                </button>
+              </div>
+              <UserCircle className="h-8 w-8 text-slate-400" />
+            </div>
+
             <Link to="/upload">
               <Button className="gap-2 shadow-sm">
                 <Upload className="h-4 w-4" />
                 Đóng góp tài liệu
               </Button>
             </Link>
+
+            {currentUser.role === 'admin' && (
+              <Link to="/admin">
+                <Button variant="outline" className="gap-2 shadow-sm">
+                  <Settings className="h-4 w-4" />
+                  Admin
+                </Button>
+              </Link>
+            )}
           </nav>
         </div>
       </header>

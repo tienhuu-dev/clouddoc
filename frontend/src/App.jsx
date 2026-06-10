@@ -6,10 +6,12 @@ import DocumentPreviewPage from "./pages/DocumentPreviewPage"
 import UploadPage from "./pages/UploadPage"
 import AdminLayout from "./components/AdminLayout"
 import AdminDashboard from "./pages/admin/AdminDashboard"
+import { AppProvider } from "./context/AppContext"
 
 function App() {
   return (
-    <BrowserRouter>
+    <AppProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
@@ -23,6 +25,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </AppProvider>
   )
 }
 
