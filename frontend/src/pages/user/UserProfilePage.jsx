@@ -186,7 +186,7 @@ export default function UserProfilePage() {
                         <h4 className="font-semibold text-slate-800 line-clamp-1" title={doc.title}>{doc.title}</h4>
                         <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">.{doc.fileType.toUpperCase()}</Badge>
-                          <span>{doc.uploadDate}</span>
+                          <span>{doc.uploadTime ? `${doc.uploadTime} - ` : ''}{doc.uploadDate}</span>
                           <span className="hidden md:inline">&bull;</span>
                           <span className="hidden md:inline">{doc.subject} ({doc.school})</span>
                         </div>

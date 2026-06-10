@@ -1,13 +1,14 @@
 import { useState } from "react"
 import { Link, Outlet, useNavigate } from "react-router-dom"
-import { Cloud, Upload, UserCircle, Settings, LogIn, LogOut, ChevronDown, User } from "lucide-react"
+import { Cloud, Upload, UserCircle, Settings, LogIn, LogOut, ChevronDown, User, Bell } from "lucide-react"
 import { Button } from "./ui/button"
 import { useAppContext } from "@/context/AppContext"
 
 export default function Layout() {
-  const { isLoggedIn, currentUser, login, logout } = useAppContext()
+  const { isLoggedIn, currentUser, notifications, login, logout, markNotificationsAsRead } = useAppContext()
   const navigate = useNavigate()
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -51,25 +52,67 @@ export default function Layout() {
                   </Link>
                 )}
 
+                {/* Notification Bell */}
+                <div className="relative border-l pl-4 ml-2 border-slate-200">
+                  <button 
+                    onClick={() => {
+                      setShowNotifications(!showNotifications)
+                      if (!showNotifications) markNotificationsAsRead()
+                      setShowDropdown(false)
+                    }}
+                    className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {notifications.filter(n => !n.read).length > 0 && (
+                      <span className="absolute top-1.5 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                    )}
+                  </button>
+
+                  {showNotifications && (
+                    <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 z-50">
+                      <div className="px-4 py-2 border-b border-slate-100 mb-2 flex justify-between items-center">
+                        <p className="text-sm font-bold text-slate-700">Thông báo</p>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-6 text-center text-sm text-slate-500">
+                            Không có thông báo nào.
+                          </div>
+                        ) : (
+                          notifications.map(notif => (
+                            <div key={notif.id} className="px-4 py-3 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors">
+                              <p className="text-sm text-slate-700 leading-snug">{notif.message}</p>
+                              <span className="text-[10px] text-slate-400 mt-1 block">Vừa xong</span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* User Dropdown */}
                 <div className="relative border-l pl-4 ml-2 border-slate-200">
                   <button 
-                    onClick={() => setShowDropdown(!showDropdown)}
+                    onClick={() => {
+                      setShowDropdown(!showDropdown)
+                      setShowNotifications(false)
+                    }}
                     className="flex items-center gap-2 text-left hover:bg-slate-50 p-1.5 rounded-lg transition-colors"
                   >
                     <UserCircle className="h-8 w-8 text-slate-400" />
                     <div className="hidden md:block">
-                      <p className="text-sm font-bold text-slate-700 leading-tight">{currentUser.name}</p>
-                      <p className="text-[10px] text-slate-500 capitalize">{currentUser.role}</p>
+                      <p className="text-sm font-bold text-slate-700 leading-tight">{currentUser?.name}</p>
+                      <p className="text-[10px] text-slate-500 capitalize">{currentUser?.role}</p>
                     </div>
                     <ChevronDown className="h-4 w-4 text-slate-400" />
                   </button>
 
                   {showDropdown && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2 z-50">
                       <div className="px-4 py-2 border-b border-slate-100 mb-2 md:hidden">
-                        <p className="text-sm font-bold text-slate-700 truncate">{currentUser.name}</p>
-                        <p className="text-[10px] text-slate-500">{currentUser.email}</p>
+                        <p className="text-sm font-bold text-slate-700 truncate">{currentUser?.name}</p>
+                        <p className="text-[10px] text-slate-500">{currentUser?.email}</p>
                       </div>
                       <Link 
                         to="/profile" 

@@ -7,6 +7,7 @@ export function AppProvider({ children }) {
   const [documents, setDocuments] = useState(MOCK_DOCUMENTS)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+  const [notifications, setNotifications] = useState([])
 
   const login = (role = "student") => {
     setIsLoggedIn(true)
@@ -44,8 +45,32 @@ export function AppProvider({ children }) {
     setDocuments(prev => [{ ...doc, id: `doc-00${prev.length + 1}` }, ...prev])
   }
 
+  const addNotification = (message) => {
+    const newNotif = {
+      id: Date.now(),
+      message,
+      read: false,
+      time: new Date().toISOString()
+    }
+    setNotifications(prev => [newNotif, ...prev])
+  }
+
+  const markNotificationsAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  }
+
   const updateDocumentStatus = (id, newStatus) => {
-    setDocuments(prev => prev.map(d => d.id === id ? { ...d, status: newStatus } : d))
+    setDocuments(prev => {
+      const updatedDocs = prev.map(d => d.id === id ? { ...d, status: newStatus } : d)
+      // Send notification if approved
+      if (newStatus === "approved") {
+        const doc = updatedDocs.find(d => d.id === id)
+        if (doc) {
+          addNotification(`Tài liệu "${doc.title}" của bạn đã được duyệt và xuất bản!`)
+        }
+      }
+      return updatedDocs
+    })
   }
 
   const deleteDocument = (id) => {
@@ -57,12 +82,14 @@ export function AppProvider({ children }) {
       documents,
       isLoggedIn,
       currentUser,
+      notifications,
       login,
       logout,
       updateUserProfile,
       addDocument,
       updateDocumentStatus,
-      deleteDocument
+      deleteDocument,
+      markNotificationsAsRead
     }}>
       {children}
     </AppContext.Provider>

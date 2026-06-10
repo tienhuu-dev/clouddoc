@@ -1,5 +1,6 @@
-import { useState, useRef } from "react"
-import { UploadCloud, File, X, CheckCircle2, AlertCircle } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { UploadCloud, File, X, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,8 @@ import { Input } from "@/components/ui/input"
 
 export default function UploadPage() {
   const { addDocument, currentUser } = useAppContext()
+  const navigate = useNavigate()
+  
   const [file, setFile] = useState(null)
   const [error, setError] = useState("")
   const [isUploading, setIsUploading] = useState(false)
@@ -59,40 +62,51 @@ export default function UploadPage() {
     setIsUploading(true)
     setError("")
     setProgress(0)
-
-    // Simulate S3 Upload Progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          
-          // Thêm document vào Context (status pending)
-          const ext = file.name.split('.').pop()
-          const newDoc = {
-            title: title,
-            school: school,
-            department: dept,
-            subject: subject,
-            fileType: ext,
-            fileSize: (file.size / (1024 * 1024)).toFixed(1) + "MB",
-            uploader: currentUser.name,
-            status: "pending",
-            downloadCount: 0,
-            s3Url: "#", // Mock
-            contentIndex: title.toLowerCase(),
-            uploadDate: new Date().toISOString().split('T')[0]
-          }
-          
-          addDocument(newDoc)
-          setIsUploading(false)
-          setIsSuccess(true)
-          
-          return 100
-        }
-        return prev + Math.floor(Math.random() * 15) + 5
-      })
-    }, 400)
   }
+
+  // Effect to handle progress and submission
+  useEffect(() => {
+    let interval;
+    if (isUploading) {
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) return 100
+          return prev + Math.floor(Math.random() * 15) + 5
+        })
+      }, 400)
+    }
+    return () => clearInterval(interval)
+  }, [isUploading])
+
+  useEffect(() => {
+    if (isUploading && progress >= 100) {
+      // Simulate final delay
+      const timer = setTimeout(() => {
+        // Thêm document vào Context (status pending)
+        const ext = file.name.split('.').pop()
+        const newDoc = {
+          title: title,
+          school: school,
+          department: dept,
+          subject: subject,
+          fileType: ext,
+          fileSize: (file.size / (1024 * 1024)).toFixed(1) + "MB",
+          uploader: currentUser?.name || "Ẩn danh",
+          status: "pending",
+          downloadCount: 0,
+          s3Url: "#", // Mock
+          contentIndex: title.toLowerCase(),
+          uploadDate: new Date().toISOString().split('T')[0],
+          uploadTime: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        }
+        
+        addDocument(newDoc)
+        setIsUploading(false)
+        setIsSuccess(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [progress, isUploading, addDocument, currentUser, file, title, school, dept, subject])
 
   const resetForm = () => {
     setFile(null)
@@ -107,7 +121,15 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <Button 
+        variant="ghost" 
+        className="mb-4 text-slate-500 hover:text-slate-800 -ml-2"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại
+      </Button>
+
       <div className="text-center mb-10">
         <h1 className="text-3xl font-bold text-slate-800 mb-3">Đóng góp tài liệu</h1>
         <p className="text-slate-500">

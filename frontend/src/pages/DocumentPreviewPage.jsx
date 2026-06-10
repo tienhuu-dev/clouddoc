@@ -1,5 +1,6 @@
-import { useParams, Link } from "react-router-dom"
-import { Download, Share2, Info, FileText, ChevronLeft, Calendar, User, Clock } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useParams, Link, useNavigate } from "react-router-dom"
+import { Download, Share2, Info, FileText, ChevronLeft, Calendar, User, Clock, ArrowLeft } from "lucide-react"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -7,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 export default function DocumentPreviewPage() {
   const { id } = useParams()
   const { documents } = useAppContext()
+  const navigate = useNavigate()
   
   const [document, setDocument] = useState(null)
   const [relatedDocs, setRelatedDocs] = useState([])
@@ -41,15 +43,17 @@ export default function DocumentPreviewPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Breadcrumb / Back Button */}
-      <div className="mb-6">
-        <Link to={-1} className="inline-flex items-center text-sm text-slate-500 hover:text-primary transition-colors">
-          <ChevronLeft className="h-4 w-4 mr-1" /> Quay lại danh sách
-        </Link>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      {/* Back Button */}
+      <Button 
+        variant="ghost" 
+        className="mb-4 text-slate-500 hover:text-slate-800 -ml-2"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại
+      </Button>
 
-      <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-12rem)] min-h-[600px]">
+      <div className="flex flex-col lg:flex-row gap-8">
         
         {/* Left Column - PDF Viewer (3/4 on large screens) */}
         <div className="w-full lg:w-3/4 bg-slate-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col relative border border-slate-200">
