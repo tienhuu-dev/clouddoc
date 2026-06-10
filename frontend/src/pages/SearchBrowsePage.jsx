@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useSearchParams, Link } from "react-router-dom"
-import { FileText, Download, Eye, Search as SearchIcon } from "lucide-react"
+import { FileText, Download, Eye, Search as SearchIcon, Filter, BookOpen } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
@@ -75,13 +75,30 @@ export default function SearchBrowsePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Premium Header Banner */}
+      <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 rounded-3xl p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
+          <BookOpen className="w-96 h-96 text-white" />
+        </div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-32 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+        <div className="relative z-10 text-white max-w-2xl">
+          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight drop-shadow-md">Khám phá Kho Tàng Tri Thức</h1>
+          <p className="text-indigo-100 text-lg md:text-xl opacity-90 leading-relaxed font-medium">
+            Tìm kiếm hàng ngàn tài liệu học tập, slide bài giảng và đề thi được chia sẻ bởi cộng đồng sinh viên HUTECH.
+          </p>
+        </div>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-8">
         
         {/* Left Sidebar - Filters (1/4) */}
         <aside className="w-full md:w-1/4 space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm sticky top-24">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <SearchIcon className="h-5 w-5 text-primary" /> Bộ lọc tìm kiếm
+          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sticky top-24 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
+            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 pb-4 border-b border-slate-100">
+              <Filter className="h-5 w-5 text-indigo-600" /> Bộ lọc tìm kiếm
             </h2>
             
             <div className="space-y-4">
@@ -139,7 +156,7 @@ export default function SearchBrowsePage() {
                 </select>
               </div>
 
-              <Button className="w-full mt-4" onClick={handleApplyFilters}>
+              <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-md h-12 shadow-lg shadow-indigo-200 transition-all duration-200 hover:-translate-y-0.5 rounded-xl font-semibold" onClick={handleApplyFilters}>
                 Áp dụng bộ lọc
               </Button>
             </div>
@@ -148,15 +165,17 @@ export default function SearchBrowsePage() {
 
         {/* Right Main Content - Results (3/4) */}
         <main className="w-full md:w-3/4">
-          <div className="mb-6 flex justify-between items-center border-b pb-4">
-            <h1 className="text-2xl font-bold text-slate-800">
-              {isLoading ? "Đang tìm kiếm..." : `Tìm thấy ${results.length} tài liệu`}
-            </h1>
-            {!isLoading && query && (
-              <p className="text-slate-500">
-                Cho từ khóa: <span className="font-semibold text-primary">"{query}"</span>
-              </p>
-            )}
+          <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end border-b border-slate-200 pb-5">
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                {isLoading ? "Đang tìm kiếm..." : `Tìm thấy ${results.length} tài liệu`}
+              </h2>
+              {!isLoading && query && (
+                <p className="text-slate-500 mt-1 font-medium">
+                  Cho từ khóa: <span className="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-md">"{query}"</span>
+                </p>
+              )}
+            </div>
           </div>
 
           {isLoading ? (
@@ -178,7 +197,7 @@ export default function SearchBrowsePage() {
             // Document Cards Grid
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map(doc => (
-                <Card key={doc.id} className="flex flex-col h-full hover:-translate-y-1 transition-transform duration-200">
+                <Card key={doc.id} className="flex flex-col h-full hover:-translate-y-1.5 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 bg-white rounded-2xl overflow-hidden border-slate-200">
                   <CardHeader className="pb-3 flex-grow">
                     <div className="flex justify-between items-start mb-2">
                       <Badge variant={getBadgeVariant(doc.fileType)}>
@@ -231,11 +250,13 @@ export default function SearchBrowsePage() {
             </div>
           ) : (
             // Empty State
-            <div className="text-center py-20 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-              <FileText className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-slate-700 mb-2">Không tìm thấy tài liệu nào</h3>
-              <p className="text-slate-500 max-w-md mx-auto">
-                Rất tiếc, chúng tôi không tìm thấy tài liệu nào khớp với yêu cầu của bạn. Thử dùng từ khóa ngắn hơn hoặc thay đổi bộ lọc.
+            <div className="text-center py-24 bg-gradient-to-b from-slate-50 to-white rounded-2xl border-2 border-dashed border-slate-200 shadow-sm">
+              <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <FileText className="h-10 w-10 text-slate-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-700 mb-3 tracking-tight">Không tìm thấy tài liệu nào</h3>
+              <p className="text-slate-500 max-w-md mx-auto text-lg leading-relaxed">
+                Rất tiếc, chúng tôi không tìm thấy tài liệu nào khớp với yêu cầu của bạn. Hãy thử dùng từ khóa ngắn hơn hoặc nới lỏng bộ lọc nhé.
               </p>
             </div>
           )}
