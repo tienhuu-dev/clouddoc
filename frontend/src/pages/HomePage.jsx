@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { ArrowRight, ChevronDown, Download, FileText, Search, SlidersHorizontal, Sparkles, Upload, Users, X } from "lucide-react"
+import { Archive, ArrowRight, ChevronDown, Download, FileText, Folder, MoreVertical, Search, SlidersHorizontal, Sparkles, Star, Upload, Users, X } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
@@ -46,6 +46,8 @@ export default function HomePage() {
 
   return (
     <div className="user-page-enter relative min-h-screen overflow-hidden bg-[#f5fbf4] pb-16">
+      <MobileHome documents={approvedDocs} navigate={navigate} />
+      <div className="hidden lg:block">
       <div className="float-blob pointer-events-none absolute -top-48 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[#88f8c2]/30 blur-[120px]" />
       <div className="float-blob-slow pointer-events-none absolute right-0 top-20 h-96 w-96 rounded-full bg-[#b5ede7]/40 blur-[100px]" />
 
@@ -146,6 +148,69 @@ export default function HomePage() {
           <Button onClick={handleContribute} className="h-11 gap-2 rounded-full bg-white px-5 font-semibold text-[#006c49] shadow-none hover:bg-[#f5fbf4]"><Upload className="h-4 w-4" /> {isLoggedIn ? "Đóng góp tài liệu" : "Đăng nhập để đóng góp"}</Button>
         </section>
       </main>
+      </div>
+    </div>
+  )
+}
+
+function MobileHome({ documents, navigate }) {
+  const recentDocs = documents.slice(0, 5)
+  const folders = [
+    { label: "HUTECH", icon: Folder, query: "HUTECH" },
+    { label: "CNTT", icon: Folder, query: "CNTT" },
+    { label: "Được tải nhiều", icon: Star, query: "" },
+    { label: "Đã lưu", icon: Archive, query: "" },
+  ]
+
+  return (
+    <div className="space-y-9 px-4 py-7 lg:hidden">
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-sm font-bold uppercase tracking-[0.12em] text-[#3e4a42]">Gần đây</h1>
+          <Link to="/search" className="text-xs font-semibold text-[#006c49]">Xem tất cả</Link>
+        </div>
+        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {recentDocs.map((document, index) => (
+            <Link key={document.id} to={`/preview/${document.id}`} style={{ "--delay": `${index * 70}ms` }} className="reveal-up w-40 shrink-0 rounded-2xl border border-[#bdcac0]/35 bg-white p-2.5 shadow-[0_4px_12px_rgba(19,78,74,0.06)]">
+              <span className={`grid h-32 place-items-center rounded-xl ${index % 3 === 1 ? "bg-[#8ef3f2]/20" : index % 3 === 2 ? "bg-[#55c694]/20" : "bg-[#dee4de]"}`}>
+                <FileText className="h-8 w-8 text-[#006a69]" />
+              </span>
+              <p className="mt-3 truncate text-sm font-semibold">{document.title}</p>
+              <p className="mt-1 text-xs text-[#6d7a72]">{document.subject}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.12em] text-[#3e4a42]">Thư mục</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {folders.map(({ label, icon: Icon, query }) => (
+            <button key={label} type="button" onClick={() => navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/search")} className="interactive-card flex min-h-20 items-center gap-3 rounded-2xl border border-[#bdcac0]/35 bg-white px-4 text-left shadow-[0_4px_12px_rgba(19,78,74,0.05)]">
+              <Icon className="h-6 w-6 shrink-0 text-[#006c49]" />
+              <span className="text-sm font-semibold">{label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-[0.12em] text-[#3e4a42]">Tất cả tài liệu</h2>
+        <div className="space-y-3">
+          {documents.map((document, index) => (
+            <article key={document.id} style={{ "--delay": `${index * 60}ms` }} className="reveal-up flex items-center gap-3 rounded-2xl border border-[#bdcac0]/35 bg-white p-3 shadow-[0_4px_12px_rgba(19,78,74,0.05)]">
+              <Link to={`/preview/${document.id}`} className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-[#dee4de] text-[#006c49]">
+                <FileText className="h-6 w-6" />
+              </Link>
+              <Link to={`/preview/${document.id}`} className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{document.title}</p>
+                <p className="mt-1 text-xs text-[#6d7a72]">{document.fileSize} · {document.uploadDate}</p>
+              </Link>
+              <button type="button" className="rounded-full p-2 text-[#6d7a72]" aria-label="Tùy chọn"><MoreVertical className="h-5 w-5" /></button>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

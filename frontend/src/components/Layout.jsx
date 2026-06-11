@@ -6,14 +6,15 @@ import {
   Cloud,
   FileText,
   GraduationCap,
+  Home,
+  Library,
   LogIn,
   LogOut,
-  Menu,
+  Plus,
   Search,
   Settings,
   Upload,
   User,
-  X,
 } from "lucide-react"
 import { Button } from "./ui/button"
 import { useAppContext } from "@/context/AppContext"
@@ -23,7 +24,6 @@ export default function Layout() {
   const navigate = useNavigate()
   const [showDropdown, setShowDropdown] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const unreadCount = notifications.filter((notification) => !notification.read).length
   const initials = currentUser?.name
@@ -35,21 +35,63 @@ export default function Layout() {
   const handleLogout = () => {
     logout()
     setShowDropdown(false)
-    setMobileMenuOpen(false)
     navigate("/")
   }
 
   const handleAdminLogin = () => {
     login("admin")
-    setMobileMenuOpen(false)
     navigate("/admin")
+  }
+
+  const handleMobileUpload = () => {
+    if (!isLoggedIn) login("student")
+    navigate("/upload")
+  }
+
+  const handleMobileProfile = () => {
+    if (!isLoggedIn) {
+      login("student")
+      navigate("/profile")
+      return
+    }
+    navigate(currentUser?.role === "admin" ? "/admin" : "/profile")
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f5fbf4] font-sans text-[#171d19]">
       <header className="sticky top-0 z-50 border-b border-[#bdcac0]/35 bg-[#f5fbf4]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-[72px] max-w-[1440px] items-center gap-5 px-4 sm:px-6 lg:px-10">
-          <Link to="/" className="flex shrink-0 items-center gap-3" onClick={() => setMobileMenuOpen(false)}>
+        <div className="border-b border-[#bdcac0]/20 px-4 pb-3 pt-4 lg:hidden">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="text-2xl font-bold tracking-tight text-[#006c49]">CloudDoc</Link>
+            <button
+              type="button"
+              onClick={() => {
+                if (isLoggedIn) {
+                  setShowNotifications(!showNotifications)
+                  if (!showNotifications) markNotificationsAsRead()
+                } else login("student")
+              }}
+              className="relative grid h-11 w-11 place-items-center rounded-full bg-[#e4eae3] text-[#3e4a42]"
+              aria-label="Thông báo"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-500" />}
+            </button>
+          </div>
+          <Link to="/search" className="mt-4 flex h-12 items-center gap-3 rounded-2xl bg-[#e4eae3] px-4 text-[#6d7a72]">
+            <Search className="h-5 w-5" />
+            <span className="text-sm">Tìm kiếm tài liệu...</span>
+          </Link>
+          {showNotifications && isLoggedIn && (
+            <div className="reveal-scale absolute inset-x-4 top-[132px] overflow-hidden rounded-2xl border border-[#bdcac0]/45 bg-white shadow-xl">
+              <p className="border-b border-[#bdcac0]/30 px-4 py-3 text-sm font-semibold">Thông báo</p>
+              {notifications.length === 0 ? <p className="px-4 py-8 text-center text-sm text-[#6d7a72]">Chưa có thông báo mới.</p> : notifications.map((notification) => <p key={notification.id} className="border-b border-[#bdcac0]/20 px-4 py-3 text-sm last:border-0">{notification.message}</p>)}
+            </div>
+          )}
+        </div>
+
+        <div className="mx-auto hidden h-[72px] max-w-[1440px] items-center gap-5 px-4 sm:px-6 lg:flex lg:px-10">
+          <Link to="/" className="flex shrink-0 items-center gap-3">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#55c694] text-[#004f34]">
               <Cloud className="h-5 w-5" />
             </span>
@@ -159,36 +201,12 @@ export default function Layout() {
             )}
           </div>
 
-          <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="ml-auto rounded-full p-2.5 text-[#3e4a42] hover:bg-[#e4eae3] lg:hidden" aria-label="Mở menu">
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="border-t border-[#bdcac0]/30 bg-[#f5fbf4] px-4 py-4 shadow-lg lg:hidden">
-            <nav className="mx-auto max-w-[1440px] space-y-1">
-              <MobileNavLink to="/" onClick={() => setMobileMenuOpen(false)}>Trang chủ</MobileNavLink>
-              <MobileNavLink to="/search" onClick={() => setMobileMenuOpen(false)}>Khám phá tài liệu</MobileNavLink>
-              {isLoggedIn && <MobileNavLink to="/upload" onClick={() => setMobileMenuOpen(false)}>Đóng góp tài liệu</MobileNavLink>}
-              {isLoggedIn && <MobileNavLink to="/profile" onClick={() => setMobileMenuOpen(false)}>Hồ sơ cá nhân</MobileNavLink>}
-              {currentUser?.role === "admin" && <MobileNavLink to="/admin" onClick={() => setMobileMenuOpen(false)}>Trang quản trị</MobileNavLink>}
-              <div className="my-3 h-px bg-[#bdcac0]/30" />
-              {isLoggedIn ? (
-                <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"><LogOut className="h-4 w-4" /> Đăng xuất</button>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => { login("student"); setMobileMenuOpen(false) }} className="rounded-full border border-[#bdcac0]/60 bg-white px-4 py-3 text-sm font-semibold text-[#3e4a42]">Sinh viên</button>
-                  <button type="button" onClick={handleAdminLogin} className="rounded-full bg-[#006c49] px-4 py-3 text-sm font-semibold text-white">Admin</button>
-                </div>
-              )}
-            </nav>
-          </div>
-        )}
       </header>
 
-      <main className="flex-1"><Outlet /></main>
+      <main className="flex-1 pb-20 lg:pb-0"><Outlet /></main>
 
-      <footer className="border-t border-[#bdcac0]/35 bg-[#eff5ef]">
+      <footer className="hidden border-t border-[#bdcac0]/35 bg-[#eff5ef] lg:block">
         <div className="mx-auto grid max-w-[1440px] gap-9 px-4 py-10 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr] lg:px-10">
           <div>
             <Link to="/" className="flex items-center gap-3">
@@ -231,6 +249,23 @@ export default function Layout() {
           © {new Date().getFullYear()} CloudDoc Academic Hub. All rights reserved.
         </div>
       </footer>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid h-20 grid-cols-5 items-center rounded-t-3xl border-t border-[#bdcac0]/25 bg-[#f5fbf4]/95 px-3 shadow-[0_-8px_24px_rgba(19,78,74,0.08)] backdrop-blur-xl lg:hidden">
+        <BottomNavLink to="/" icon={Home} label="Trang chủ" />
+        <BottomNavLink to="/search" icon={Search} label="Tìm kiếm" />
+        <button type="button" onClick={handleMobileUpload} className="-translate-y-4 justify-self-center">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-[#006c49] text-white shadow-[0_10px_24px_rgba(0,108,73,0.28)]"><Plus className="h-8 w-8" /></span>
+          <span className="mt-1 block text-[10px] font-semibold text-[#006c49]">Tải lên</span>
+        </button>
+        <button type="button" onClick={() => navigate("/search")} className="flex flex-col items-center gap-1 text-[#3e4a42]">
+          <Library className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Thư viện</span>
+        </button>
+        <button type="button" onClick={handleMobileProfile} className="flex flex-col items-center gap-1 text-[#3e4a42]">
+          <User className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Hồ sơ</span>
+        </button>
+      </nav>
     </div>
   )
 }
@@ -243,6 +278,11 @@ function HeaderNavLink({ to, end, children }) {
   )
 }
 
-function MobileNavLink({ to, onClick, children }) {
-  return <Link to={to} onClick={onClick} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-[#3e4a42] hover:bg-[#e4eae3] hover:text-[#006c49]">{children}</Link>
+function BottomNavLink({ to, icon: Icon, label }) {
+  return (
+    <NavLink to={to} className={({ isActive }) => `flex flex-col items-center gap-1 ${isActive ? "font-semibold text-[#006c49]" : "text-[#3e4a42]"}`}>
+      <Icon className="h-5 w-5" />
+      <span className="text-[10px]">{label}</span>
+    </NavLink>
+  )
 }
