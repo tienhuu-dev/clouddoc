@@ -107,7 +107,14 @@ export default function Layout() {
                   )}
                 </div>
 
-                <div className="relative">
+                <div
+                  className="relative"
+                  onMouseEnter={() => {
+                    setShowDropdown(true)
+                    setShowNotifications(false)
+                  }}
+                  onMouseLeave={() => setShowDropdown(false)}
+                >
                   <button
                     type="button"
                     onClick={() => {
@@ -115,13 +122,15 @@ export default function Layout() {
                       setShowNotifications(false)
                     }}
                     className="flex items-center gap-2 rounded-full p-1.5 pr-3 hover:bg-[#e4eae3]"
+                    aria-expanded={showDropdown}
                   >
                     <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-tr from-[#006c49] to-[#55c694] text-xs font-bold text-white">{initials || "SV"}</span>
                     <span className="max-w-28 truncate text-xs font-semibold">{currentUser?.name}</span>
-                    <ChevronDown className="h-4 w-4 text-[#6d7a72]" />
+                    <ChevronDown className={`h-4 w-4 text-[#6d7a72] transition-transform duration-200 ${showDropdown ? "rotate-180" : ""}`} />
                   </button>
                   {showDropdown && (
-                    <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-[#bdcac0]/45 bg-white p-2 shadow-xl">
+                    <div className="reveal-scale absolute right-0 top-full w-52 pt-3">
+                      <div className="rounded-2xl border border-[#bdcac0]/45 bg-white p-2 shadow-xl">
                       <Link to="/profile" onClick={() => setShowDropdown(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-[#3e4a42] hover:bg-[#eff5ef] hover:text-[#006c49]">
                         <User className="h-4 w-4" /> Hồ sơ cá nhân
                       </Link>
@@ -133,6 +142,7 @@ export default function Layout() {
                       <button type="button" onClick={handleLogout} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
                         <LogOut className="h-4 w-4" /> Đăng xuất
                       </button>
+                      </div>
                     </div>
                   )}
                 </div>
