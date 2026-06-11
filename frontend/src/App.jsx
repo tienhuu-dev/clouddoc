@@ -35,6 +35,7 @@ function App() {
           <Route path="preview/:id" element={<DocumentPreviewPage />} />
           <Route path="upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
           <Route path="profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
 
         <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminLayout /></ProtectedRoute>}>

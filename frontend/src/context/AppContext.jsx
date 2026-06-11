@@ -36,9 +36,15 @@ export function AppProvider({ children }) {
   }
 
   const updateUserProfile = (updatedData) => {
+    const previousName = currentUser?.name
+    if (previousName && updatedData.name && updatedData.name !== previousName) {
+      setDocuments(prev => prev.map(doc => (
+        doc.uploader?.startsWith(previousName)
+          ? { ...doc, uploader: doc.uploader.replace(previousName, updatedData.name) }
+          : doc
+      )))
+    }
     setCurrentUser(prev => ({ ...prev, ...updatedData }))
-    // Trong thực tế, lúc này cũng có thể update các documents của uploader đó nếu đổi tên.
-    // (Ở ví dụ này giữ nguyên để đơn giản, hoặc có thể map update tuỳ ý)
   }
 
   const addDocument = (doc) => {
@@ -96,6 +102,8 @@ export function AppProvider({ children }) {
   )
 }
 
+// Context hooks intentionally live beside the provider for this small application.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppContext() {
   return useContext(AppContext)
 }

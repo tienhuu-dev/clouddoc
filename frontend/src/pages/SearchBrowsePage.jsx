@@ -1,267 +1,173 @@
-import { useState, useEffect } from "react"
-import { useSearchParams, Link } from "react-router-dom"
-import { FileText, Download, Eye, Search as SearchIcon, Filter, BookOpen } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Link, useSearchParams } from "react-router-dom"
+import { Download, Eye, FileText, Search, SlidersHorizontal, Sparkles, X } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+
+const fileStyles = {
+  pdf: "bg-[#55c694]/20 text-[#006c49]",
+  docx: "bg-[#8ef3f2]/30 text-[#006a69]",
+  zip: "bg-[#86bcb7]/25 text-[#316763]",
+}
+
+function FilterPanel({ query, schoolParam, deptParam, subjectParam, localQuery, setLocalQuery, selectedSchool, setSelectedSchool, selectedDept, setSelectedDept, selectedSubject, setSelectedSubject, schools, departments, subjects, applyFilters, clearFilters }) {
+  const filters = [
+    { label: "Trường đại học", value: selectedSchool, options: schools, onChange: (value) => { setSelectedSchool(value); setSelectedDept(""); setSelectedSubject("") }, disabled: false },
+    { label: "Chuyên ngành", value: selectedDept, options: departments, onChange: (value) => { setSelectedDept(value); setSelectedSubject("") }, disabled: !selectedSchool },
+    { label: "Môn học", value: selectedSubject, options: subjects, onChange: setSelectedSubject, disabled: !selectedDept },
+  ]
+
+  return (
+    <form onSubmit={applyFilters} className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-[#006c49]">Bộ lọc</h2>
+        <p className="mt-1 text-sm text-[#6d7a72]">Thu hẹp kết quả tìm kiếm</p>
+      </div>
+      <label className="relative block">
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#006c49]" />
+        <Input value={localQuery} onChange={(event) => setLocalQuery(event.target.value)} placeholder="Nhập từ khóa..." className="h-11 rounded-full border-[#bdcac0]/60 bg-white pl-10 shadow-none focus-visible:ring-[#55c694]/30" />
+      </label>
+      {filters.map((filter) => (
+        <label key={filter.label} className="block">
+          <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#3e4a42]">{filter.label}</span>
+          <select value={filter.value} onChange={(event) => filter.onChange(event.target.value)} disabled={filter.disabled} className="h-11 w-full rounded-xl border border-[#bdcac0]/60 bg-white px-3 text-sm text-[#3e4a42] outline-none focus:border-[#006c49] disabled:bg-[#eff5ef] disabled:opacity-60">
+            <option value="">Tất cả</option>
+            {filter.options.map((option) => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
+      ))}
+      <Button type="submit" className="h-11 w-full rounded-full bg-[#006c49] shadow-none hover:bg-[#005c3f]">Áp dụng bộ lọc</Button>
+      {(query || schoolParam || deptParam || subjectParam) && <button type="button" onClick={clearFilters} className="w-full text-xs font-semibold text-[#6d7a72] hover:text-red-600">Xóa tất cả bộ lọc</button>}
+    </form>
+  )
+}
 
 export default function SearchBrowsePage() {
   const [searchParams, setSearchParams] = useSearchParams()
+
+  return <SearchBrowseContent key={searchParams.toString()} searchParams={searchParams} setSearchParams={setSearchParams} />
+}
+
+function SearchBrowseContent({ searchParams, setSearchParams }) {
+  const { documents } = useAppContext()
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const query = searchParams.get("q") || ""
   const schoolParam = searchParams.get("school") || ""
   const deptParam = searchParams.get("dept") || ""
   const subjectParam = searchParams.get("subject") || ""
-
-  const { documents } = useAppContext()
-
-  const [isLoading, setIsLoading] = useState(true)
-  const [results, setResults] = useState([])
-
-  // Filters State
   const [localQuery, setLocalQuery] = useState(query)
   const [selectedSchool, setSelectedSchool] = useState(schoolParam)
   const [selectedDept, setSelectedDept] = useState(deptParam)
   const [selectedSubject, setSelectedSubject] = useState(subjectParam)
-
   const schools = Object.keys(SCHOOL_DATA)
   const departments = selectedSchool ? Object.keys(SCHOOL_DATA[selectedSchool]) : []
   const subjects = selectedDept ? SCHOOL_DATA[selectedSchool][selectedDept] : []
 
-  useEffect(() => {
-    // Simulate API delay with OpenSearch
-    setIsLoading(true)
-    const timer = setTimeout(() => {
-      // Chỉ tìm trong các tài liệu đã được duyệt
-      let filtered = documents.filter(d => d.status === "approved")
+  const results = useMemo(() => {
+    let filtered = documents.filter((document) => document.status === "approved")
+    if (query) {
+      const normalizedQuery = query.toLocaleLowerCase("vi")
+      filtered = filtered.filter((document) => `${document.title} ${document.contentIndex} ${document.subject}`.toLocaleLowerCase("vi").includes(normalizedQuery))
+    }
+    if (schoolParam) filtered = filtered.filter((document) => document.school === schoolParam)
+    if (deptParam) filtered = filtered.filter((document) => document.department === deptParam)
+    if (subjectParam) filtered = filtered.filter((document) => document.subject === subjectParam)
+    return filtered
+  }, [documents, query, schoolParam, deptParam, subjectParam])
 
-      if (query) {
-        const q = query.toLowerCase()
-        filtered = filtered.filter(doc => 
-          doc.title.toLowerCase().includes(q) || 
-          doc.contentIndex.toLowerCase().includes(q)
-        )
-      }
-      if (schoolParam) filtered = filtered.filter(doc => doc.school === schoolParam)
-      if (deptParam) filtered = filtered.filter(doc => doc.department === deptParam)
-      if (subjectParam) filtered = filtered.filter(doc => doc.subject === subjectParam)
-
-      setResults(filtered)
-      setIsLoading(false)
-    }, 800) // 800ms skeleton loading
-
-    return () => clearTimeout(timer)
-  }, [query, schoolParam, deptParam, subjectParam, documents])
-
-  const handleApplyFilters = () => {
+  const applyFilters = (event) => {
+    event?.preventDefault()
     const params = new URLSearchParams()
     if (localQuery) params.append("q", localQuery)
     if (selectedSchool) params.append("school", selectedSchool)
     if (selectedDept) params.append("dept", selectedDept)
     if (selectedSubject) params.append("subject", selectedSubject)
     setSearchParams(params)
+    setFiltersOpen(false)
   }
 
-  const getBadgeVariant = (fileType) => {
-    switch (fileType.toLowerCase()) {
-      case 'pdf': return 'pdf'
-      case 'docx': return 'docx'
-      case 'zip': return 'zip'
-      default: return 'secondary'
-    }
+  const clearFilters = () => {
+    setLocalQuery(""); setSelectedSchool(""); setSelectedDept(""); setSelectedSubject(""); setSearchParams({})
   }
+
+  const downloadDocument = (document) => {
+    if (document.s3Url && document.s3Url !== "#") {
+      const anchor = window.document.createElement("a")
+      anchor.href = document.s3Url
+      anchor.download = `${document.title}.${document.fileType}`
+      anchor.click()
+    } else window.alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
+  }
+
+  const filterPanelProps = { query, schoolParam, deptParam, subjectParam, localQuery, setLocalQuery, selectedSchool, setSelectedSchool, selectedDept, setSelectedDept, selectedSubject, setSelectedSubject, schools, departments, subjects, applyFilters, clearFilters }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Premium Header Banner */}
-      <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 rounded-3xl p-8 md:p-12 mb-10 shadow-2xl relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-          <BookOpen className="w-96 h-96 text-white" />
-        </div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 right-32 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-
-        <div className="relative z-10 text-white max-w-2xl">
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight drop-shadow-md">Khám phá Kho Tàng Tri Thức</h1>
-          <p className="text-indigo-100 text-lg md:text-xl opacity-90 leading-relaxed font-medium">
-            Tìm kiếm hàng ngàn tài liệu học tập, slide bài giảng và đề thi được chia sẻ bởi cộng đồng sinh viên HUTECH.
-          </p>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-8">
-        
-        {/* Left Sidebar - Filters (1/4) */}
-        <aside className="w-full md:w-1/4 space-y-6">
-          <div className="bg-white/80 backdrop-blur-xl p-6 rounded-2xl border border-slate-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sticky top-24 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)]">
-            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 pb-4 border-b border-slate-100">
-              <Filter className="h-5 w-5 text-indigo-600" /> Bộ lọc tìm kiếm
-            </h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Từ khóa</label>
-                <Input 
-                  value={localQuery} 
-                  onChange={(e) => setLocalQuery(e.target.value)}
-                  placeholder="Nhập từ khóa..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Trường</label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  value={selectedSchool}
-                  onChange={(e) => {
-                    setSelectedSchool(e.target.value)
-                    setSelectedDept("")
-                    setSelectedSubject("")
-                  }}
-                >
-                  <option value="">Tất cả</option>
-                  {schools.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Ngành</label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                  value={selectedDept}
-                  onChange={(e) => {
-                    setSelectedDept(e.target.value)
-                    setSelectedSubject("")
-                  }}
-                  disabled={!selectedSchool}
-                >
-                  <option value="">Tất cả</option>
-                  {departments.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Môn học</label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  disabled={!selectedDept}
-                >
-                  <option value="">Tất cả</option>
-                  {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-
-              <Button className="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-md h-12 shadow-lg shadow-indigo-200 transition-all duration-200 hover:-translate-y-0.5 rounded-xl font-semibold" onClick={handleApplyFilters}>
-                Áp dụng bộ lọc
-              </Button>
-            </div>
-          </div>
+    <div className="user-page-enter min-h-screen bg-[#f5fbf4]">
+      <div className="mx-auto grid max-w-[1440px] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:px-10 lg:py-14">
+        <aside className="hidden lg:block">
+          <div className="sticky top-24 rounded-2xl border border-[#bdcac0]/35 bg-white/45 p-6 backdrop-blur-xl"><FilterPanel {...filterPanelProps} /></div>
         </aside>
 
-        {/* Right Main Content - Results (3/4) */}
-        <main className="w-full md:w-3/4">
-          <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-end border-b border-slate-200 pb-5">
+        <main className="min-w-0">
+          <header className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
-                {isLoading ? "Đang tìm kiếm..." : `Tìm thấy ${results.length} tài liệu`}
-              </h2>
-              {!isLoading && query && (
-                <p className="text-slate-500 mt-1 font-medium">
-                  Cho từ khóa: <span className="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-md">"{query}"</span>
-                </p>
-              )}
+              <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#006c49]"><Sparkles className="h-3.5 w-3.5" /> Tìm kiếm thông minh</span>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Kết quả tìm kiếm</h1>
+              <p className="mt-2 text-sm text-[#3e4a42]">Tìm thấy <strong className="text-[#006c49]">{results.length} tài liệu</strong>{query ? <> cho “{query}”</> : " trong thư viện"}.</p>
             </div>
-          </div>
+            <button type="button" onClick={() => setFiltersOpen(true)} className="flex h-11 items-center justify-center gap-2 rounded-full border border-[#bdcac0]/60 bg-white px-4 text-sm font-semibold text-[#006c49] lg:hidden"><SlidersHorizontal className="h-4 w-4" /> Bộ lọc</button>
+          </header>
 
-          {isLoading ? (
-            // Skeleton Loading
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm animate-pulse">
-                  <div className="h-4 w-16 bg-slate-200 rounded-full mb-4"></div>
-                  <div className="h-6 w-full bg-slate-200 rounded mb-2"></div>
-                  <div className="h-6 w-3/4 bg-slate-200 rounded mb-4"></div>
-                  <div className="space-y-2 mt-4">
-                    <div className="h-3 w-full bg-slate-100 rounded"></div>
-                    <div className="h-3 w-5/6 bg-slate-100 rounded"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : results.length > 0 ? (
-            // Document Cards Grid
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map(doc => (
-                <Card key={doc.id} className="flex flex-col h-full hover:-translate-y-1.5 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 bg-white rounded-2xl overflow-hidden border-slate-200">
-                  <CardHeader className="pb-3 flex-grow">
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant={getBadgeVariant(doc.fileType)}>
-                        .{doc.fileType.toUpperCase()}
-                      </Badge>
-                      <span className="text-xs text-slate-400 font-medium">{doc.fileSize}</span>
-                    </div>
-                    <CardTitle className="text-lg line-clamp-2 leading-tight" title={doc.title}>
-                      {doc.title}
-                    </CardTitle>
-                    <div className="mt-2 text-sm text-slate-500">
-                      <p className="line-clamp-1">{doc.school} &bull; {doc.department}</p>
-                      <p className="font-medium text-slate-700">{doc.subject}</p>
-                    </div>
-                  </CardHeader>
-                  <CardFooter className="pt-0 flex flex-col gap-3">
-                    <div className="w-full flex justify-between items-center text-xs text-slate-500 mb-2">
-                      <span>👤 {doc.uploader}</span>
-                      <span>⬇️ {doc.downloadCount}</span>
-                    </div>
-                      <div className="pt-0 flex gap-2 w-full">
-                        <Link to={`/preview/${doc.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full text-slate-600 bg-slate-50 hover:bg-slate-100 h-9">
-                            <Eye className="w-3.5 h-3.5 mr-1.5" /> Xem
-                          </Button>
-                        </Link>
-                        <Button 
-                          variant="default" 
-                          size="sm" 
-                          className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 shadow-sm"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            if (doc.s3Url && doc.s3Url !== "#") {
-                              const a = window.document.createElement('a')
-                              a.href = doc.s3Url
-                              a.download = `${doc.title}.${doc.fileType}`
-                              a.click()
-                            } else {
-                              alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
-                            }
-                          }}
-                        >
-                          <Download className="w-3.5 h-3.5 mr-1.5" /> Tải
-                        </Button>
+          {results.length > 0 ? (
+            <div className="space-y-5">
+              {results.map((document, index) => (
+                <article key={document.id} style={{ "--delay": `${index * 70}ms` }} className="interactive-card reveal-up group relative overflow-hidden rounded-2xl border border-[#bdcac0]/45 bg-white p-5 shadow-[0_4px_20px_rgba(19,78,74,0.04)] sm:p-6">
+                  <span className="absolute inset-y-0 left-0 w-1 bg-[#006c49]" />
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                    <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl text-[10px] font-bold uppercase ${fileStyles[document.fileType] || fileStyles.zip}`}>{document.fileType}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <Link to={`/preview/${document.id}`} className="text-lg font-semibold leading-7 group-hover:text-[#006c49]">{document.title}</Link>
+                        <span className="rounded-full bg-[#55c694]/15 px-2.5 py-1 text-[11px] font-semibold text-[#005236]">{Math.max(60, 98 - index * 7)}% phù hợp</span>
                       </div>
-                  </CardFooter>
-                </Card>
+                      <p className="mt-1 text-xs text-[#6d7a72]">{document.uploader} · {document.fileType.toUpperCase()} · {document.uploadDate}</p>
+                      <div className="mt-4 rounded-xl border-l-2 border-[#006a69]/50 bg-[#eff5ef] px-4 py-3 text-sm leading-6 text-[#3e4a42]">
+                        Tài liệu về <mark className="rounded bg-[#8ef3f2]/60 px-1 text-[#00504f]">{query || document.subject}</mark>, thuộc môn {document.subject} tại {document.school}.
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <span className="rounded-md bg-[#eaefe9] px-2.5 py-1 text-[11px] font-semibold text-[#3e4a42]">{document.subject}</span>
+                        <span className="rounded-md bg-[#eaefe9] px-2.5 py-1 text-[11px] font-semibold text-[#3e4a42]">{document.department}</span>
+                        <span className="ml-auto flex items-center gap-1 text-xs text-[#6d7a72]"><Download className="h-3.5 w-3.5" /> {document.downloadCount}</span>
+                        <Link to={`/preview/${document.id}`} className="grid h-8 w-8 place-items-center rounded-full text-[#006c49] hover:bg-[#55c694]/15"><Eye className="h-4 w-4" /></Link>
+                        <button type="button" onClick={() => downloadDocument(document)} className="grid h-8 w-8 place-items-center rounded-full text-[#006c49] hover:bg-[#55c694]/15"><Download className="h-4 w-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
           ) : (
-            // Empty State
-            <div className="text-center py-24 bg-gradient-to-b from-slate-50 to-white rounded-2xl border-2 border-dashed border-slate-200 shadow-sm">
-              <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <FileText className="h-10 w-10 text-slate-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-slate-700 mb-3 tracking-tight">Không tìm thấy tài liệu nào</h3>
-              <p className="text-slate-500 max-w-md mx-auto text-lg leading-relaxed">
-                Rất tiếc, chúng tôi không tìm thấy tài liệu nào khớp với yêu cầu của bạn. Hãy thử dùng từ khóa ngắn hơn hoặc nới lỏng bộ lọc nhé.
-              </p>
+            <div className="rounded-3xl border-2 border-dashed border-[#bdcac0]/60 bg-white/60 py-20 text-center">
+              <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#55c694]/15 text-[#006c49]"><FileText className="h-7 w-7" /></span>
+              <h3 className="mt-5 text-lg font-semibold">Không tìm thấy tài liệu</h3>
+              <p className="mt-2 text-sm text-[#6d7a72]">Hãy thử từ khóa ngắn hơn hoặc thay đổi bộ lọc.</p>
+              <Button variant="outline" onClick={clearFilters} className="mt-5 rounded-full border-[#bdcac0]/60">Xóa bộ lọc</Button>
             </div>
           )}
         </main>
       </div>
+
+      {filtersOpen && (
+        <div className="fixed inset-0 z-50 bg-[#171d19]/40 p-4 backdrop-blur-sm lg:hidden">
+          <button type="button" className="absolute inset-0" onClick={() => setFiltersOpen(false)} aria-label="Đóng bộ lọc" />
+          <div className="reveal-scale relative ml-auto h-full max-w-sm overflow-y-auto rounded-2xl bg-[#f5fbf4] p-6 shadow-2xl">
+            <button type="button" onClick={() => setFiltersOpen(false)} className="absolute right-4 top-4 rounded-full p-2 text-[#6d7a72] hover:bg-[#e4eae3]"><X className="h-5 w-5" /></button>
+            <FilterPanel {...filterPanelProps} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

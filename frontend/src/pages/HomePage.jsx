@@ -1,210 +1,160 @@
 import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { Search, Download, Eye } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
+import { ArrowRight, ChevronDown, Download, FileText, Search, SlidersHorizontal, Sparkles, Upload, Users, X } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+
+const fileStyles = {
+  pdf: "bg-[#55c694] text-[#004f34]",
+  docx: "bg-[#8ef3f2] text-[#00504f]",
+  zip: "bg-[#86bcb7] text-[#114d49]",
+}
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { documents } = useAppContext()
-  
+  const { documents, isLoggedIn, login } = useAppContext()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSchool, setSelectedSchool] = useState("")
   const [selectedDept, setSelectedDept] = useState("")
-  const [selectedSubject, setSelectedSubject] = useState("")
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const schools = Object.keys(SCHOOL_DATA)
   const departments = selectedSchool ? Object.keys(SCHOOL_DATA[selectedSchool]) : []
-  const subjects = selectedDept ? SCHOOL_DATA[selectedSchool][selectedDept] : []
+  const approvedDocs = documents.filter((document) => document.status === "approved")
+  const featuredDocs = approvedDocs.slice(0, 4)
+  const totalDownloads = approvedDocs.reduce((sum, document) => sum + document.downloadCount, 0)
 
-  // Lấy các tài liệu đã duyệt để hiển thị mục Mới cập nhật
-  const approvedDocs = documents.filter(d => d.status === "approved").slice(0, 8)
-
-  const handleSearch = (e) => {
-    e.preventDefault()
+  const runSearch = (queryOverride = searchQuery) => {
     const params = new URLSearchParams()
-    if (searchQuery) params.append("q", searchQuery)
+    if (queryOverride) params.append("q", queryOverride)
     if (selectedSchool) params.append("school", selectedSchool)
     if (selectedDept) params.append("dept", selectedDept)
-    if (selectedSubject) params.append("subject", selectedSubject)
-    
     navigate(`/search?${params.toString()}`)
   }
 
-  const getBadgeVariant = (fileType) => {
-    switch (fileType?.toLowerCase()) {
-      case 'pdf': return 'pdf'
-      case 'docx': return 'docx'
-      case 'zip': return 'zip'
-      default: return 'secondary'
-    }
+  const handleSearch = (event) => {
+    event.preventDefault()
+    runSearch()
+  }
+
+  const handleContribute = () => {
+    if (!isLoggedIn) login("student")
+    navigate("/upload")
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
-      
-      {/* Hero Banner Section */}
-      <div className="relative w-full bg-blue-600 overflow-hidden py-24 border-b border-blue-700 shadow-inner">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 opacity-20">
-          <svg className="absolute left-0 top-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <polygon fill="white" points="0,100 100,0 100,100"/>
-          </svg>
-        </div>
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
-        <div className="absolute top-24 -left-24 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-50"></div>
+    <div className="user-page-enter relative min-h-screen overflow-hidden bg-[#f5fbf4] pb-16">
+      <div className="float-blob pointer-events-none absolute -top-48 left-1/2 h-[700px] w-[900px] -translate-x-1/2 rounded-full bg-[#88f8c2]/30 blur-[120px]" />
+      <div className="float-blob-slow pointer-events-none absolute right-0 top-20 h-96 w-96 rounded-full bg-[#b5ede7]/40 blur-[100px]" />
 
-        <div className="container relative z-10 mx-auto px-4 text-center">
-          <div className="bg-white/10 backdrop-blur-md inline-block px-6 py-2 rounded-full mb-6 border border-white/20">
-            <span className="text-white font-medium text-sm">Hệ thống Thư viện số hiện đại</span>
+      <section className="relative px-4 pb-8 pt-12 sm:px-6 lg:px-10 lg:pb-10 lg:pt-16">
+        <div className="reveal-up mx-auto max-w-6xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#bdcac0]/70 bg-white/60 px-4 py-2 text-xs font-semibold text-[#006c49] backdrop-blur-xl">
+            <Sparkles className="h-4 w-4" /> Tìm kiếm nội dung tài liệu thông minh
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-4 drop-shadow-md">
-            KHO TÀI LIỆU HỌC TẬP CLOUDDOC
+          <h1 className="mx-auto mt-7 max-w-4xl text-4xl font-bold leading-[1.08] tracking-[-0.04em] text-[#171d19] sm:text-6xl">
+            Tìm kiếm tài liệu học tập thông minh
           </h1>
-          <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-10">
-            Tìm kiếm bài giảng, đề thi, và tài liệu chuyên ngành nhanh chóng. Dữ liệu được chia sẻ bởi cộng đồng sinh viên.
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-[#3e4a42] sm:text-lg">
+            Tìm kiếm nội dung bên trong PDF, Word và Slide chỉ trong vài mili giây. Tối ưu thời gian nghiên cứu cho sinh viên và giảng viên.
           </p>
 
-          {/* Search Box */}
-          <div className="bg-white/95 backdrop-blur-xl p-4 md:p-6 rounded-2xl shadow-2xl max-w-5xl mx-auto border border-white/40">
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
-              
-              <div className="relative flex-1 group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
-                </div>
-                <Input 
-                  type="text" 
-                  placeholder="Nhập từ khóa cần tìm kiếm..." 
-                  className="pl-12 h-14 text-base rounded-xl bg-slate-50 border-slate-200"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+          <form onSubmit={handleSearch} className="mx-auto mt-9 flex max-w-4xl items-center gap-3 rounded-2xl border border-[#bdcac0]/50 bg-white p-2 shadow-[0_12px_32px_rgba(19,78,74,0.12)] transition focus-within:border-[#55c694] focus-within:shadow-[0_12px_36px_rgba(85,198,148,0.22)] sm:rounded-full">
+            <Search className="ml-3 h-6 w-6 shrink-0 text-[#006c49]" />
+            <Input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Nhập từ khóa, tên môn học, hoặc nội dung cần tìm..." className="h-12 flex-1 border-0 bg-transparent px-1 text-base shadow-none focus-visible:ring-0" />
+            <Button type="submit" className="h-12 shrink-0 rounded-xl bg-[#006c49] px-6 font-semibold text-white shadow-none hover:bg-[#005c3f] sm:rounded-full">
+              <Search className="mr-2 h-4 w-4 sm:hidden" /> <span className="hidden sm:inline">Tìm kiếm</span>
+            </Button>
+          </form>
 
-              <select 
-                className="h-14 rounded-xl border border-input bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-primary w-full md:w-48"
-                value={selectedSchool}
-                onChange={(e) => { setSelectedSchool(e.target.value); setSelectedDept(""); setSelectedSubject(""); }}
-              >
-                <option value="">[Chọn Trường]</option>
-                {schools.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-
-              <select 
-                className="h-14 rounded-xl border border-input bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-primary w-full md:w-48 disabled:opacity-50"
-                value={selectedDept}
-                onChange={(e) => { setSelectedDept(e.target.value); setSelectedSubject(""); }}
-                disabled={!selectedSchool}
-              >
-                <option value="">[Chọn Ngành]</option>
-                {departments.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-
-              <select 
-                className="h-14 rounded-xl border border-input bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-primary w-full md:w-48 disabled:opacity-50"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                disabled={!selectedDept}
-              >
-                <option value="">[Chọn Môn Học]</option>
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-
-              <Button type="submit" size="lg" className="h-14 px-8 rounded-xl text-base font-bold">
-                Tìm kiếm
-              </Button>
-            </form>
-
-            {/* Popular Tags */}
-            <div className="flex flex-wrap justify-center gap-2 mt-4">
-              <span className="text-sm text-slate-500 font-medium mr-2 self-center">Tin nhiều nhất:</span>
-              {["Cơ sở dữ liệu", "Toán rời rạc", "Đề thi C++", "Tài liệu React"].map(tag => (
-                <button 
-                  key={tag} 
-                  onClick={() => { setSearchQuery(tag); handleSearch({preventDefault: () => {}}); }}
-                  className="text-xs px-3 py-1.5 rounded-md bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-                >
-                  {tag}
-                </button>
-              ))}
+          <div className="mx-auto mt-3 max-w-4xl text-left">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button type="button" onClick={() => setFiltersOpen(!filtersOpen)} className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition ${filtersOpen ? "bg-[#006c49] text-white" : "border border-[#bdcac0]/50 bg-white/60 text-[#006c49] hover:bg-white"}`}>
+                <SlidersHorizontal className="h-3.5 w-3.5" /> Lọc nâng cao
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`} />
+              </button>
+              {selectedSchool && <span className="rounded-full bg-[#55c694]/20 px-3 py-2 text-xs font-semibold text-[#005236]">{selectedSchool}</span>}
+              {selectedDept && <span className="rounded-full bg-[#8ef3f2]/30 px-3 py-2 text-xs font-semibold text-[#00504f]">{selectedDept}</span>}
+              {(selectedSchool || selectedDept) && <button type="button" onClick={() => { setSelectedSchool(""); setSelectedDept("") }} className="grid h-8 w-8 place-items-center rounded-full text-[#6d7a72] hover:bg-white hover:text-red-600" aria-label="Xóa bộ lọc"><X className="h-3.5 w-3.5" /></button>}
             </div>
+
+            {filtersOpen && (
+              <form onSubmit={handleSearch} className="reveal-scale mt-3 grid gap-3 rounded-2xl border border-[#bdcac0]/40 bg-white/75 p-3 shadow-[0_8px_24px_rgba(19,78,74,0.08)] backdrop-blur-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
+                <select value={selectedSchool} onChange={(event) => { setSelectedSchool(event.target.value); setSelectedDept("") }} className="h-11 rounded-xl border border-[#bdcac0]/60 bg-white px-4 text-sm text-[#3e4a42] outline-none focus:border-[#006c49]">
+                  <option value="">Tất cả trường đại học</option>
+                  {schools.map((school) => <option key={school} value={school}>{school}</option>)}
+                </select>
+                <select value={selectedDept} onChange={(event) => setSelectedDept(event.target.value)} disabled={!selectedSchool} className="h-11 rounded-xl border border-[#bdcac0]/60 bg-white px-4 text-sm text-[#3e4a42] outline-none focus:border-[#006c49] disabled:bg-[#eff5ef]">
+                  <option value="">Khoa / Chuyên ngành</option>
+                  {departments.map((department) => <option key={department} value={department}>{department}</option>)}
+                </select>
+                <Button type="submit" className="h-11 rounded-xl bg-[#006c49] px-6 font-semibold text-white shadow-none hover:bg-[#005c3f] sm:col-span-2 lg:col-span-1">Áp dụng</Button>
+              </form>
+            )}
+          </div>
+
+          <div className="mx-auto mt-6 grid max-w-3xl overflow-hidden rounded-2xl border border-[#bdcac0]/35 bg-white/50 backdrop-blur-sm sm:grid-cols-3">
+            <StatCard icon={FileText} value={`${approvedDocs.length}+`} label="Tài liệu chia sẻ" tone="bg-[#55c694]/20 text-[#006c49]" />
+            <StatCard icon={Download} value={`${totalDownloads}+`} label="Lượt tải xuống" tone="bg-[#8ef3f2]/35 text-[#006a69]" />
+            <StatCard icon={Users} value="8.2K" label="Người dùng active" tone="bg-[#86bcb7]/25 text-[#316763]" />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Recent Documents Section */}
-      <div className="container mx-auto px-4 py-16 max-w-7xl">
-        <div className="flex justify-between items-end mb-8 border-b pb-4">
-          <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            ✨ TÀI LIỆU MỚI CẬP NHẬT (Đã duyệt)
-          </h2>
-          <Link to="/search" className="text-sm font-medium text-primary hover:underline">
-            Xem tất cả &rarr;
-          </Link>
-        </div>
+      <main className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10">
+        <section>
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-[#171d19]">Tài liệu nổi bật</h2>
+              <p className="mt-1 text-sm text-[#6d7a72]">Các tài liệu được cộng đồng quan tâm nhiều nhất.</p>
+            </div>
+            <Link to="/search" className="hidden items-center gap-2 text-sm font-semibold text-[#006c49] hover:gap-3 sm:flex">Xem tất cả <ArrowRight className="h-4 w-4" /></Link>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {approvedDocs.map(doc => (
-            <Card key={doc.id} className="flex flex-col h-full hover:shadow-lg transition-shadow duration-200 border-slate-200 bg-white">
-              <CardHeader className="pb-3 flex-grow">
-                <div className="flex justify-between items-start mb-2">
-                  <Badge variant={getBadgeVariant(doc.fileType)} className="px-2 py-0.5">
-                    .{doc.fileType.toUpperCase()}
-                  </Badge>
-                </div>
-                <CardTitle className="text-[15px] leading-snug line-clamp-2 hover:text-primary transition-colors cursor-pointer" title={doc.title}>
-                  <Link to={`/preview/${doc.id}`}>{doc.title}</Link>
-                </CardTitle>
-                <div className="mt-2 text-xs text-slate-500">
-                  <p className="font-medium text-slate-700 line-clamp-1 mb-1">
-                    <span className="text-slate-400 font-normal">Uploader:</span> {doc.uploader}
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1">📄 {doc.fileSize}</span>
-                    <span className="flex items-center gap-1">⬇️ {doc.downloadCount}</span>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {featuredDocs.map((document, index) => (
+              <article key={document.id} style={{ "--delay": `${index * 80}ms` }} className="interactive-card reveal-up group flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-[#bdcac0]/45 bg-white shadow-[0_4px_20px_rgba(19,78,74,0.04)]">
+                <Link to={`/preview/${document.id}`} className={`grid h-48 shrink-0 place-items-center ${index === 1 ? "bg-[#8ef3f2]/20" : index === 2 ? "bg-[#86bcb7]/25" : "bg-[#55c694]/20"}`}>
+                  <span className="grid h-20 w-20 place-items-center rounded-2xl border border-white/70 bg-white/45 text-[#006c49] backdrop-blur-sm transition-transform group-hover:scale-105">
+                    <FileText className="h-9 w-9" />
+                  </span>
+                </Link>
+                <div className="flex flex-1 flex-col p-5">
+                  <div className="flex gap-2">
+                    <span className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase ${fileStyles[document.fileType] || fileStyles.zip}`}>{document.subject}</span>
+                    <span className="rounded-md bg-[#eaefe9] px-2.5 py-1 text-[10px] font-bold uppercase text-[#3e4a42]">{document.fileType}</span>
+                  </div>
+                  <Link to={`/preview/${document.id}`} className="mt-4 line-clamp-3 block min-h-[72px] text-base font-semibold leading-6 text-[#171d19] group-hover:text-[#006c49]">{document.title}</Link>
+                  <p className="mt-2 truncate text-xs text-[#6d7a72]">{document.uploader} · {document.school}</p>
+                  <div className="mt-auto flex items-center justify-between border-t border-[#bdcac0]/25 pt-4 text-[11px] text-[#6d7a72]">
+                    <span className="flex items-center gap-1"><Download className="h-3.5 w-3.5" /> {document.downloadCount} lượt tải</span>
+                    <span>{document.uploadDate}</span>
                   </div>
                 </div>
-              </CardHeader>
-              <CardFooter className="pt-0 flex gap-2">
-                <Link to={`/preview/${doc.id}`} className="flex-1">
-                  <Button variant="outline" size="sm" className="w-full text-slate-600 bg-slate-50 hover:bg-slate-100 h-9">
-                    <Eye className="w-3.5 h-3.5 mr-1.5" /> Xem
-                  </Button>
-                </Link>
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="flex-1 h-9 bg-blue-600 hover:bg-blue-700 shadow-sm"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (doc.s3Url && doc.s3Url !== "#") {
-                      const a = window.document.createElement('a')
-                      a.href = doc.s3Url
-                      a.download = `${doc.title}.${doc.fileType}`
-                      a.click()
-                    } else {
-                      alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
-                    }
-                  }}
-                >
-                  <Download className="w-3.5 h-3.5 mr-1.5" /> Tải
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-          {approvedDocs.length === 0 && (
-            <div className="col-span-full text-center py-12 text-slate-500">
-              Chưa có tài liệu nào được duyệt.
-            </div>
-          )}
-        </div>
-      </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="reveal-up mt-12 flex flex-col justify-between gap-5 rounded-3xl bg-gradient-to-r from-[#006c49] to-[#316763] p-7 text-white shadow-[0_12px_32px_rgba(19,78,74,0.18)] sm:flex-row sm:items-center">
+          <div>
+            <h2 className="text-xl font-semibold">Bạn có tài liệu hữu ích?</h2>
+            <p className="mt-1 text-sm text-white/70">Chia sẻ kiến thức và cùng xây dựng kho học liệu cho cộng đồng.</p>
+          </div>
+          <Button onClick={handleContribute} className="h-11 gap-2 rounded-full bg-white px-5 font-semibold text-[#006c49] shadow-none hover:bg-[#f5fbf4]"><Upload className="h-4 w-4" /> {isLoggedIn ? "Đóng góp tài liệu" : "Đăng nhập để đóng góp"}</Button>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+function StatCard({ icon: Icon, value, label, tone }) {
+  return (
+    <div className="flex items-center justify-center gap-3 border-b border-[#bdcac0]/30 px-4 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone}`}><Icon className="h-4 w-4" /></span>
+      <span className="text-left"><strong className="block text-2xl font-bold tracking-tight text-[#171d19]">{value}</strong><span className="text-[11px] font-medium text-[#3e4a42]">{label}</span></span>
     </div>
   )
 }
