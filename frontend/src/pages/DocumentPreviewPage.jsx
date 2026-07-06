@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { useEffect, useState } from "react"
 import { ArrowLeft, BookOpen, Building2, Calendar, CheckCircle2, Download, Eye, FileText, Share2, User } from "lucide-react"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
@@ -11,19 +12,46 @@ const fileStyles = {
 
 export default function DocumentPreviewPage() {
   const { id } = useParams()
-  const { documents } = useAppContext()
+  const { documents, getDocumentUrl } = useAppContext()
+  const [previewUrl, setPreviewUrl] = useState("")
+  const [previewError, setPreviewError] = useState("")
   const navigate = useNavigate()
   const document = documents.find((item) => item.id === id)
+  const documentId = document?.id
+  const documentFileType = document?.fileType
+  const documentS3Url = document?.s3Url
   const relatedDocs = document ? documents.filter((item) => item.subject === document.subject && item.id !== document.id && item.status === "approved").slice(0, 3) : []
+
+  useEffect(() => {
+    let active = true
+
+    const loadPreviewUrl = async () => {
+      if (!documentId || documentFileType?.toLowerCase() !== "pdf") return
+      setPreviewError("")
+      try {
+        const url = await getDocumentUrl({ id: documentId, s3Url: documentS3Url })
+        if (active) setPreviewUrl(url)
+      } catch (error) {
+        if (active) setPreviewError(error.message)
+      }
+    }
+
+    loadPreviewUrl()
+
+    return () => {
+      active = false
+    }
+  }, [documentId, documentFileType, documentS3Url, getDocumentUrl])
 
   if (!document) {
     return <div className="grid min-h-[70vh] place-items-center bg-[#f5fbf4] text-center"><div><FileText className="mx-auto h-12 w-12 text-[#6d7a72]" /><h1 className="mt-4 text-xl font-semibold">Không tìm thấy tài liệu</h1><Button onClick={() => navigate("/search")} className="mt-5 rounded-full bg-[#006c49]">Về thư viện</Button></div></div>
   }
 
-  const downloadDocument = () => {
-    if (document.s3Url && document.s3Url !== "#") {
+  const downloadDocument = async () => {
+    const url = await getDocumentUrl(document)
+    if (url) {
       const anchor = window.document.createElement("a")
-      anchor.href = document.s3Url
+      anchor.href = url
       anchor.download = `${document.title}.${document.fileType}`
       anchor.click()
     } else window.alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
@@ -45,13 +73,13 @@ export default function DocumentPreviewPage() {
               <span className="flex min-w-0 items-center gap-2"><FileText className="h-5 w-5 shrink-0 text-[#006c49]" /><span className="truncate">{document.title}.{document.fileType}</span></span>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold">{document.fileSize}</span>
             </div>
-            <div className={`grid place-items-center p-5 ${document.s3Url !== "#" && document.fileType?.toLowerCase() === "pdf" ? "min-h-[620px] lg:min-h-[800px]" : "min-h-[520px]"}`}>
-              {document.s3Url !== "#" && document.fileType?.toLowerCase() === "pdf" ? (
-                <iframe src={document.s3Url} className="h-full min-h-[620px] w-full max-w-4xl border-0 bg-white shadow-lg lg:min-h-[800px]" title={document.title} />
+            <div className={`grid place-items-center p-5 ${document.fileType?.toLowerCase() === "pdf" && previewUrl ? "min-h-[620px] lg:min-h-[800px]" : "min-h-[520px]"}`}>
+              {document.fileType?.toLowerCase() === "pdf" && previewUrl ? (
+                <iframe src={previewUrl} className="h-full min-h-[620px] w-full max-w-4xl border-0 bg-white shadow-lg lg:min-h-[800px]" title={document.title} />
               ) : (
                 <div className="w-full max-w-xl rounded-2xl border border-[#bdcac0]/50 bg-white p-8 text-center shadow-lg">
                   <span className={`mx-auto grid h-20 w-20 place-items-center rounded-2xl text-xs font-bold uppercase ${fileStyles[document.fileType] || fileStyles.zip}`}>{document.fileType}</span>
-                  <h2 className="mt-5 text-xl font-semibold">Chưa hỗ trợ xem trước định dạng {document.fileType?.toUpperCase()}</h2>
+                  <h2 className="mt-5 text-xl font-semibold">{previewError || `Chưa hỗ trợ xem trước định dạng ${document.fileType?.toUpperCase()}`}</h2>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6d7a72]">Tài liệu đã sẵn sàng để tải xuống và mở bằng ứng dụng tương thích.</p>
                   <Button onClick={downloadDocument} className="mt-6 gap-2 rounded-full bg-[#006c49] px-6 shadow-none hover:bg-[#005c3f]"><Download className="h-4 w-4" /> Tải tài liệu</Button>
                 </div>

@@ -118,9 +118,13 @@ export default function AdminDashboard() {
     window.setTimeout(() => setToastMessage(""), 3000)
   }
 
-  const handleApprove = (id) => {
-    updateDocumentStatus(id, "approved")
-    showToast("Tài liệu đã được duyệt và xuất bản.")
+  const handleApprove = async (id) => {
+    try {
+      await updateDocumentStatus(id, "approved")
+      showToast("Tài liệu đã được duyệt và xuất bản.")
+    } catch (error) {
+      showToast(error.message || "Duyệt tài liệu thất bại.")
+    }
   }
 
   const confirmDelete = (doc) => {
@@ -133,10 +137,14 @@ export default function AdminDashboard() {
     setDocToDelete(null)
   }
 
-  const handleDelete = () => {
-    deleteDocument(docToDelete.id)
-    closeDeleteModal()
-    showToast("Đã xóa tài liệu khỏi hệ thống.")
+  const handleDelete = async () => {
+    try {
+      await deleteDocument(docToDelete.id)
+      closeDeleteModal()
+      showToast("Đã xóa tài liệu khỏi hệ thống.")
+    } catch (error) {
+      showToast(error.message || "Xóa tài liệu thất bại.")
+    }
   }
 
   return (

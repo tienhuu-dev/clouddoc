@@ -1,0 +1,25 @@
+{
+  "name": "clouddoc-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:create": "node scripts/create-database.js",
+    "db:migrate": "node scripts/migrate.js",
+    "lint": "node --check src/server.js && node --check src/app.js && node --check scripts/migrate.js && node --check scripts/create-database.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.954.0",
+    "@aws-sdk/s3-request-presigner": "^3.954.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "pg": "^8.16.3",
+    "zod": "^4.2.1"
+  },
+  "devDependencies": {}
+}

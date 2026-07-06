@@ -51,7 +51,7 @@ export default function SearchBrowsePage() {
 }
 
 function SearchBrowseContent({ searchParams, setSearchParams }) {
-  const { documents } = useAppContext()
+  const { documents, getDocumentUrl } = useAppContext()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const query = searchParams.get("q") || ""
   const schoolParam = searchParams.get("school") || ""
@@ -92,10 +92,11 @@ function SearchBrowseContent({ searchParams, setSearchParams }) {
     setLocalQuery(""); setSelectedSchool(""); setSelectedDept(""); setSelectedSubject(""); setSearchParams({})
   }
 
-  const downloadDocument = (document) => {
-    if (document.s3Url && document.s3Url !== "#") {
+  const downloadDocument = async (document) => {
+    const url = await getDocumentUrl(document)
+    if (url) {
       const anchor = window.document.createElement("a")
-      anchor.href = document.s3Url
+      anchor.href = url
       anchor.download = `${document.title}.${document.fileType}`
       anchor.click()
     } else window.alert("Tính năng tải xuống file Demo này hiện không khả dụng do không có link S3 thật!")
