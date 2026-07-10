@@ -29,7 +29,7 @@ export default function DocumentPreviewPage() {
       if (!documentId || documentFileType?.toLowerCase() !== "pdf") return
       setPreviewError("")
       try {
-        const url = await getDocumentUrl({ id: documentId, s3Url: documentS3Url })
+        const url = await getDocumentUrl({ id: documentId, s3Url: documentS3Url }, "preview")
         if (active) setPreviewUrl(url)
       } catch (error) {
         if (active) setPreviewError(error.message)

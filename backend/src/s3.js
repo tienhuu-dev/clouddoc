@@ -31,11 +31,12 @@ export async function createPresignedUploadUrl({ key, contentType }) {
   })
 }
 
-export async function createPresignedDownloadUrl({ key, fileName }) {
+export async function createPresignedDownloadUrl({ key, fileName, disposition = "attachment", contentType }) {
   const command = new GetObjectCommand({
     Bucket: config.s3UploadBucket,
     Key: key,
-    ResponseContentDisposition: fileName ? `attachment; filename="${encodeURIComponent(fileName)}"` : undefined,
+    ResponseContentDisposition: fileName ? `${disposition}; filename="${encodeURIComponent(fileName)}"` : undefined,
+    ResponseContentType: contentType,
   })
 
   return getSignedUrl(s3, command, {

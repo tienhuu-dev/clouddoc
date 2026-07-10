@@ -65,9 +65,10 @@ export async function deleteDocument(id) {
   })
 }
 
-export async function presignDownload(id) {
+export async function presignDownload(id, mode = "download") {
   const result = await request(`/documents/${id}/presign-download`, {
     method: "POST",
+    body: JSON.stringify({ mode }),
   })
   return result.data
 }

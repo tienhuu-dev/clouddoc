@@ -171,9 +171,9 @@ export function AppProvider({ children }) {
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
 
-  const getDocumentUrl = useCallback(async (doc) => {
+  const getDocumentUrl = useCallback(async (doc, mode = "download") => {
     if (apiEnabled) {
-      const data = await presignDownload(doc.id)
+      const data = await presignDownload(doc.id, mode)
       setDocuments(prev => prev.map(item => (
         item.id === doc.id ? { ...item, downloadCount: (item.downloadCount || 0) + 1 } : item
       )))

@@ -60,14 +60,18 @@ documentsRouter.patch("/:id/status", async (req, res) => {
 })
 
 documentsRouter.post("/:id/presign-download", async (req, res) => {
+  const mode = req.body?.mode === "preview" ? "preview" : "download"
   const document = await incrementDownloadCount(req.params.id)
   if (!document) {
     return res.status(404).json({ error: "Document not found" })
   }
+  const isPdfPreview = mode === "preview" && document.fileType?.toLowerCase() === "pdf"
 
   const downloadUrl = await createPresignedDownloadUrl({
     key: document.s3Key,
     fileName: `${document.title}.${document.fileType}`,
+    disposition: isPdfPreview ? "inline" : "attachment",
+    contentType: isPdfPreview ? "application/pdf" : undefined,
   })
 
   res.json({
