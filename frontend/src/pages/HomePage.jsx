@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { Archive, ArrowRight, ChevronDown, Download, FileText, Folder, MoreVertical, Search, SlidersHorizontal, Sparkles, Star, Upload, Users, X } from "lucide-react"
+import { Archive, ArrowRight, ChevronDown, Download, ExternalLink, FileText, Folder, MoreVertical, PlayCircle, Search, SlidersHorizontal, Sparkles, Star, Upload, Users, X } from "lucide-react"
 import { SCHOOL_DATA } from "@/services/mockData"
 import { useAppContext } from "@/context/AppContext"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,8 @@ const fileStyles = {
   docx: "bg-[#8ef3f2] text-[#00504f]",
   zip: "bg-[#86bcb7] text-[#114d49]",
 }
+
+const DEMO_DRIVE_URL = "https://drive.google.com/drive/folders/1-mvKrbzs08WWHUT0-whSGeNwgtwd4Uid"
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -62,6 +64,20 @@ export default function HomePage() {
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-[#3e4a42] sm:text-lg">
             Tìm kiếm nội dung bên trong PDF, Word và Slide chỉ trong vài mili giây. Tối ưu thời gian nghiên cứu cho sinh viên và giảng viên.
           </p>
+
+          <div className="mx-auto mt-7 flex max-w-3xl flex-col items-center justify-center gap-3 sm:flex-row">
+            <a
+              href={DEMO_DRIVE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-[#006c49] px-6 text-sm font-bold text-white shadow-[0_12px_28px_rgba(0,108,73,0.18)] transition hover:bg-[#005c3f]"
+            >
+              <PlayCircle className="h-5 w-5" />
+              Video demo & minh chứng chấm điểm
+              <ExternalLink className="h-4 w-4" />
+            </a>
+            <span className="text-xs font-medium text-[#6d7a72]">Mở Google Drive chứa video demo, ảnh AWS và tài liệu báo cáo.</span>
+          </div>
 
           <form onSubmit={handleSearch} className="mx-auto mt-9 flex max-w-4xl items-center gap-3 rounded-2xl border border-[#bdcac0]/50 bg-white p-2 shadow-[0_12px_32px_rgba(19,78,74,0.12)] transition focus-within:border-[#55c694] focus-within:shadow-[0_12px_36px_rgba(85,198,148,0.22)] sm:rounded-full">
             <Search className="ml-3 h-6 w-6 shrink-0 text-[#006c49]" />
@@ -164,6 +180,24 @@ function MobileHome({ documents, navigate }) {
 
   return (
     <div className="space-y-9 px-4 py-7 lg:hidden">
+      <section>
+        <a
+          href={DEMO_DRIVE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-3 rounded-2xl border border-[#55c694]/40 bg-white p-4 shadow-[0_8px_20px_rgba(19,78,74,0.08)]"
+        >
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#006c49] text-white">
+            <PlayCircle className="h-6 w-6" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-bold text-[#171d19]">Video demo & minh chứng chấm điểm</span>
+            <span className="mt-1 block text-xs leading-5 text-[#6d7a72]">Mở Google Drive để xem video demo và ảnh AWS.</span>
+          </span>
+          <ExternalLink className="h-4 w-4 shrink-0 text-[#006c49]" />
+        </a>
+      </section>
+
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-sm font-bold uppercase tracking-[0.12em] text-[#3e4a42]">Gần đây</h1>
